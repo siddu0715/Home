@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission Placement: Interactive Community Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Vibrant Tech Blue -->
+    <!-- Application Structure Plan: The SPA is structured as a single-page dashboard. The core principles are presented upfront for emphasis. The main content is organized into a master-detail view with a vertical navigation on the left for the 7 student groups, and a dynamic content panel on the right. This allows for quick, non-linear access to specific group information without scrolling. Below this, a visual timeline presents the year-long roadmap, making progression clear. Finally, a radar chart provides a data-driven summary of the community's focus areas and their evolution from Semester 1 to Semester 2. This structure was chosen to transform the linear text document into an interactive, exploratory tool that enhances understanding and usability for the student members. -->
+    <!-- Visualization & Content Choices: 1. Core Principles: Presented as static cards (HTML/Tailwind) for constant visibility. Goal: Inform. 2. Group Details (Mission, Goals, Tasks): Displayed in dynamic text blocks (HTML/JS). Goal: Organize/Inform. Interaction: User clicks a group name in the nav to show its details, hiding others. Justification: Provides focused, on-demand information access. 3. Yearly Roadmap: A visual timeline (HTML/Tailwind grid/flex). Goal: Show change over time. Interaction: Clear visual flow. Justification: More engaging and digestible than a text list. 4. Skill Focus Evolution: A radar chart (Chart.js/Canvas). Goal: Compare/Show Relationships. Interaction: Tooltips on hover. Justification: Provides a powerful, at-a-glance visualization of the strategic shift in skill development between semesters, a key insight from the report. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .nav-button {
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+        .nav-button.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            transform: translateX(4px);
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .content-pane {
+            display: none;
+        }
+        .content-pane.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        .card {
+            transition: all 0.2s ease-in-out;
+            border-top: 4px solid transparent;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            border-top-color: #60a5fa;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <header class="text-center mb-16">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600">Mission Placement</h1>
+            <p class="mt-3 text-lg text-slate-600">Your Collaborative Blueprint for Success</p>
+        </header>
+
+        <section id="principles" class="mb-20">
+             <h2 class="text-3xl font-bold text-center mb-10 text-slate-700">Core Principles</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-6 rounded-xl shadow-md card">
+                    <span class="text-4xl">🤝</span>
+                    <h3 class="text-xl font-bold my-3 text-slate-800">Collaboration</h3>
+                    <p class="text-slate-600">Your greatest strength is each other. Lift each other up. Your collective success is the ultimate goal.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md card">
+                    <span class="text-4xl">📈</span>
+                    <h3 class="text-xl font-bold my-3 text-slate-800">Consistency</h3>
+                    <p class="text-slate-600">Small, consistent efforts compound. A productive one-hour meeting weekly beats a burnout session monthly.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md card">
+                    <span class="text-4xl">🙋‍♂️</span>
+                    <h3 class="text-xl font-bold my-3 text-slate-800">Contribution</h3>
+                    <p class="text-slate-600">Every member is both a teacher and a learner. Active participation is the lifeblood of the community.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="groups" class="mb-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-slate-700">Group Missions & Action Plans</h2>
+            <p class="text-center max-w-3xl mx-auto mb-12 text-slate-600">
+                This section provides a detailed look into each of our seven specialized groups. Click on a group name from the navigation on the left to explore its specific mission, goals, and the activities designed to foster growth in that area. This interactive view helps you quickly find the information you need and understand the role each group plays in our community.
+            </p>
+            <div class="md:grid md:grid-cols-4 gap-8">
+                <nav class="md:col-span-1 mb-8 md:mb-0">
+                    <ul id="group-nav" class="space-y-2 sticky top-8">
+                        <li><button data-target="content-course" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100 active">🎓 Course Group</button></li>
+                        <li><button data-target="content-project" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">🛠️ Project Group</button></li>
+                        <li><button data-target="content-soft-skills" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">🗣️ Soft Skills Group</button></li>
+                        <li><button data-target="content-interviews" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">💼 Interviews Group</button></li>
+                        <li><button data-target="content-tech-skills" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">💻 Tech Skills Group</button></li>
+                        <li><button data-target="content-seminar" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">🎤 Seminar Group</button></li>
+                        <li><button data-target="content-academics" class="nav-button w-full text-left p-3 rounded-lg text-slate-700 hover:bg-blue-100">📚 Academics Group</button></li>
+                    </ul>
+                </nav>
+                <div id="content-display" class="md:col-span-3 bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 min-h-[400px]">
+                    
+                    <div id="content-course" class="content-pane active">
+                        <h3 class="text-2xl font-bold mb-4 text-blue-600">🎓 Course Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To build a rock-solid foundation in core engineering subjects through collaborative learning, ensuring no member is left behind.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Achieve a collective understanding of all core subjects each semester.</li>
+                            <li>Create a comprehensive, shared digital library of notes and resources.</li>
+                            <li>Implement a peer-support system for difficult topics.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Weekly Doubt-Clearing Sessions</li>
+                            <li>"Teach to Learn" Sessions</li>
+                            <li>Shared Resource Drive (Google Drive/Notion)</li>
+                            <li>Pre-Exam Study Sprints</li>
+                        </ul>
+                    </div>
+
+                    <div id="content-project" class="content-pane">
+                         <h3 class="text-2xl font-bold mb-4 text-blue-600">🛠️ Project Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To transform theoretical knowledge into practical, real-world solutions by building a portfolio of impactful projects.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Complete at least two significant group projects per year.</li>
+                            <li>Ensure every member contributes actively to a project.</li>
+                            <li>Participate in at least one hackathon or coding competition per semester.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Project Brainstorming & Ideation</li>
+                            <li>Agile Sprints & Demos</li>
+                            <li>Peer Code Reviews</li>
+                            <li>"Project Showcase" Events</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="content-soft-skills" class="content-pane">
+                         <h3 class="text-2xl font-bold mb-4 text-blue-600">🗣️ Soft Skills Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To cultivate the essential professional traits—communication, leadership, and teamwork—that turn technical experts into effective leaders.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Develop confident public speaking and presentation skills.</li>
+                            <li>Master effective teamwork and conflict resolution.</li>
+                            <li>Craft professional personal branding (resumes, LinkedIn).</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Group Discussions & Debates</li>
+                            <li>Presentation Practice with Feedback</li>
+                            <li>Resume/LinkedIn Peer-Review Workshops</li>
+                            <li>Leadership Role Rotations</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="content-interviews" class="content-pane">
+                         <h3 class="text-2xl font-bold mb-4 text-blue-600">💼 Interviews Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To systematically prepare every member to excel in technical and HR interviews, enabling them to secure top-tier placements and internships.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Solve a target number of DSA problems collectively each week.</li>
+                            <li>Conduct at least two full mock interviews for every member.</li>
+                            <li>Compile a "Company Playbook" with interview process information.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Daily/Weekly DSA Problem Solving</li>
+                            <li>Whiteboard Wednesdays</li>
+                            <li>Mock Interview Panels (Technical + HR)</li>
+                            <li>HR Question Prep Sessions</li>
+                        </ul>
+                    </div>
+
+                    <div id="content-tech-skills" class="content-pane">
+                         <h3 class="text-2xl font-bold mb-4 text-blue-600">💻 Tech Skills Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To stay ahead of the technological curve by learning, implementing, and mastering in-demand tools, languages, and frameworks.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Master fundamentals of Git, GitHub, and CLI.</li>
+                            <li>Learn and build with at least one new framework/technology per semester.</li>
+                            <li>Encourage and guide members toward relevant certifications.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>"Tech of the Week" Demo Sessions</li>
+                            <li>Hands-on Skill-Building Workshops</li>
+                            <li>Group Coding Challenges</li>
+                            <li>Tooling Setup & Configuration Guides</li>
+                        </ul>
+                    </div>
+
+                    <div id="content-seminar" class="content-pane">
+                         <h3 class="text-2xl font-bold mb-4 text-blue-600">🎤 Seminar Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To explore the frontiers of technology, science, and academia through in-depth research and compelling, well-structured presentations.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Ensure every member researches and presents at least one seminar per year.</li>
+                            <li>Publish a monthly newsletter or blog summarizing findings.</li>
+                            <li>Foster critical thinking and ability to discuss complex subjects.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Topic Selection & Research Sprints</li>
+                            <li>Presentation Dry-Runs with Peer Feedback</li>
+                            <li>Guest Speaker Sessions (Seniors, Alumni)</li>
+                            <li>Post-Seminar Q&A Discussions</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="content-academics" class="content-pane">
+                        <h3 class="text-2xl font-bold mb-4 text-blue-600">📚 Academics Group</h3>
+                        <p class="mb-4 text-slate-500 italic"><strong>Mission:</strong> To ensure every member achieves their highest academic potential through strategic planning, disciplined execution, and proactive support.</p>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Key Goals:</h4>
+                        <ul class="list-disc list-inside mb-4 space-y-1 text-slate-600">
+                            <li>Maintain a master calendar of all academic deadlines.</li>
+                            <li>Achieve a 100% on-time submission rate for all requirements.</li>
+                            <li>Proactively share information about scholarships and opportunities.</li>
+                        </ul>
+                        <h4 class="font-semibold text-lg mb-2 text-slate-700">Suggested Tasks & Activities:</h4>
+                        <ul class="list-disc list-inside space-y-1 text-slate-600">
+                            <li>Master Calendar Management (Google Calendar/Notion)</li>
+                            <li>Quick Weekly Check-ins for Deadlines</li>
+                            <li>Assignment "Co-working" Sessions</li>
+                            <li>Central Information Hub for Announcements</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="mb-20">
+            <h2 class="text-3xl font-bold text-center mb-8 text-slate-700">The Year-Long Roadmap</h2>
+             <p class="text-center max-w-3xl mx-auto mb-12 text-slate-600">
+                Our roadmap provides a birds-eye view of the community's journey throughout the year. It's split into two semesters, each with distinct themes: "Foundation & Formation" followed by "Acceleration & Application." This visual timeline helps align all groups and ensures we are consistently building momentum towards our collective goal of becoming industry-ready.
+            </p>
+            <div class="space-y-12">
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6 text-center text-slate-800 border-b-2 border-blue-300 pb-3">Semester 1: Foundation & Formation</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 1: Launch</h4>
+                            <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>All:</strong> Official Launch & Setup</li>
+                                <li><strong>Academics:</strong> Build Master Calendar</li>
+                                <li><strong>Soft Skills:</strong> Goal Setting Workshop</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 2: Fundamentals</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Course:</strong> Start Doubt-Clearing</li>
+                                <li><strong>Tech:</strong> Git & GitHub Workshop</li>
+                                <li><strong>Interviews:</strong> Basic DSA Problems</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 3: Momentum</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Project:</strong> Mini-Project Brainstorm</li>
+                                <li><strong>Seminar:</strong> Foundational Topics</li>
+                                <li><strong>Soft Skills:</strong> Presentation Practice</li>
+                            </ul>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-md card lg:col-span-3">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Months 4-5: Exam Focus & Execution</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Academics/Course:</strong> Pre-Exam Sprints</li>
+                                <li><strong>Project:</strong> Complete Mini-Project</li>
+                                <li><strong>All:</strong> Semester Retrospective</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold mb-6 text-center text-slate-800 border-b-2 border-indigo-300 pb-3">Semester 2: Acceleration & Application</h3>
+                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 6: Upskilling</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Project:</strong> Plan Ambitious Project</li>
+                                <li><strong>Tech:</strong> Learn Main Project Tech</li>
+                                <li><strong>Interviews:</strong> Advanced DSA</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 7: Deep Dive</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Project:</strong> Begin Main Project</li>
+                                <li><strong>Interviews:</strong> Peer Mock Interviews</li>
+                                <li><strong>Seminar:</strong> Advanced Topics</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md card">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Month 8: Mid-Project Push</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Soft Skills:</strong> Project Management</li>
+                                <li><strong>Course:</strong> Mid-Term Support</li>
+                                <li><strong>Tech:</strong> Secondary Skill Workshop</li>
+                            </ul>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-md card lg:col-span-3">
+                            <h4 class="font-bold text-lg mb-2 text-slate-800">Months 9-10: Final Polish & Showcase</h4>
+                             <ul class="list-disc list-inside text-slate-600 text-sm space-y-1">
+                                <li><strong>Project:</strong> Finalize & Deploy Main Project</li>
+                                <li><strong>Interviews:</strong> Panel Mock Interviews</li>
+                                <li><strong>All:</strong> Host "Mission Placement Showcase"</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="visualization">
+             <h2 class="text-3xl font-bold text-center mb-8 text-slate-700">Skill Focus Evolution</h2>
+             <p class="text-center max-w-3xl mx-auto mb-12 text-slate-600">
+                This chart visualizes the strategic shift in our community's focus between the two semesters. Notice how Semester 1 (blue) prioritizes foundational skills like Academics and Core Concepts, while Semester 2 (purple) transitions towards more advanced, industry-oriented skills like Practical Application and Technical Depth. This illustrates our structured approach to building a comprehensive skill set. Hover over the points to see the relative focus scores.
+            </p>
+            <div class="bg-white p-4 md:p-8 rounded-xl shadow-lg border border-slate-200">
+                <div class="chart-container">
+                    <canvas id="skillFocusChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="text-center p-6 mt-12 text-slate-500 text-sm">
+        <p>This interactive plan was generated to support the Mission Placement community.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navButtons = document.querySelectorAll('#group-nav button');
+            const contentPanes = document.querySelectorAll('#content-display .content-pane');
+
+            function switchTab(targetId) {
+                navButtons.forEach(button => {
+                    button.classList.toggle('active', button.dataset.target === targetId);
+                });
+
+                contentPanes.forEach(pane => {
+                    pane.classList.toggle('active', pane.id === targetId);
+                });
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    switchTab(button.dataset.target);
+                });
+            });
+
+            const ctx = document.getElementById('skillFocusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Academics & Core Concepts', 'Technical Depth', 'Practical Application', 'Interview Prep', 'Soft & Professional Skills'],
+                    datasets: [{
+                        label: 'Semester 1: Foundation',
+                        data: [8, 6, 4, 5, 6],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                    }, {
+                        label: 'Semester 2: Application',
+                        data: [5, 8, 9, 8, 7],
+                        backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(139, 92, 246, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(100, 116, 139, 0.2)'
+                            },
+                            grid: {
+                                color: 'rgba(100, 116, 139, 0.2)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 11,
+                                    weight: '500'
+                                },
+                                color: '#334155'
+                            },
+                            ticks: {
+                                backdropColor: '#f8fafc',
+                                color: '#475569'
+                            },
+                             min: 0,
+                             max: 10
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#334155',
+                                font: {
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.r !== null) {
+                                        label += context.parsed.r;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
